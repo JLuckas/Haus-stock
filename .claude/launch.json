@@ -1,0 +1,17 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "haus-stock",
+            "runtimeExecutable": "C:\\Users\\Jeremy\\.config\\herd-lite\\bin\\php.exe",
+            "runtimeArgs": [
+                "-S",
+                "127.0.0.1:8123",
+                "-t",
+                "public",
+                ".claude/dev-router.php"
+            ],
+            "port": 8123
+        }
+    ]
+}

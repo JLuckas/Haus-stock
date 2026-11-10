@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Native controls (scrollbars, date pickers, number spinners) follow the theme. */
+html.dark {
+    color-scheme: dark;
+}
+
+@layer base {
+    html {
+        /* Inter: open digits and a straight-sided "l" read better in tables of numbers. */
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    ::selection {
+        @apply bg-indigo-500/20;
+    }
+}
+
+@layer components {
+    /* Page width: comfortable on laptops, grows on Full HD and ultrawide screens. */
+    .app-container {
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 3xl:max-w-[1800px] 4xl:max-w-[2400px];
+    }
+
+    /* The one surface every card, tile and panel sits on. */
+    .surface {
+        @apply rounded-xl border border-gray-200/80 bg-white shadow-card dark:border-gray-800 dark:bg-gray-900 dark:shadow-none;
+    }
+
+    /* Small uppercase label above a number or a group. */
+    .eyebrow {
+        @apply text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400;
+    }
+
+    /* Inline text link in the accent colour. */
+    .link {
+        @apply font-medium text-indigo-600 underline-offset-4 hover:text-indigo-700 hover:underline dark:text-indigo-400 dark:hover:text-indigo-300;
+    }
+
+    /* Buttons (shared by <x-primary-button>, <x-secondary-button>, <x-danger-button>, <x-link-button>). */
+    .btn {
+        @apply inline-flex h-9 select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-sm font-medium transition
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+            disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-offset-gray-950;
+    }
+
+    .btn-primary {
+        @apply bg-indigo-600 text-white shadow-xs hover:bg-indigo-500 active:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.06);
+    }
+
+    .btn-secondary {
+        @apply border border-gray-200 bg-white text-gray-800 shadow-xs hover:bg-gray-50 active:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white shadow-xs hover:bg-red-500 active:bg-red-700 focus-visible:ring-red-500;
+    }
+
+    .btn-ghost {
+        @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100;
+    }
+
+    .btn-icon {
+        @apply h-9 w-9 px-0;
+    }
+
+    /* Text fields, selects and textareas. */
+    .field-control {
+        @apply rounded-lg border-gray-300 bg-white text-sm text-gray-900 shadow-xs placeholder:text-gray-400 transition
+            focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15
+            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-70
+            dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20 dark:disabled:bg-gray-900;
+    }
+
+    /* Keyboard shortcut hint, e.g. ⌘K. */
+    .kbd {
+        @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-gray-200 bg-gray-50 px-1 font-sans text-[11px] font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400;
+    }
+}
+
+/*
+ * Responsive tables: on phones and portrait tablets (< 1024px) a `.table-stack` table shows one card per row,
+ * each cell as "LABEL ........ value". Cells take their label from data-label; a cell without
+ * one (the row title) spans the full width, and `.stack-actions` holds the row's buttons.
+ */
+@media (max-width: 1023.98px) {
+    .table-stack thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .table-stack,
+    .table-stack tbody,
+    .table-stack tr,
+    .table-stack td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-stack tr {
+        padding: 0.875rem 1rem;
+    }
+
+    .table-stack td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.2rem 0 !important;
+        text-align: right !important;
+        white-space: normal !important;
+    }
+
+    .table-stack td[data-label]::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        font-family: theme('fontFamily.sans');
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        color: theme('colors.gray.500');
+    }
+
+    .dark .table-stack td[data-label]::before {
+        color: theme('colors.gray.400');
+    }
+
+    .table-stack td:not([data-label]) {
+        display: block;
+        text-align: left !important;
+    }
+
+    /* Long content (e.g. a recipe): label above, text left-aligned. */
+    .table-stack td.stack-block {
+        display: block;
+        text-align: left !important;
+    }
+
+    .table-stack td.stack-block[data-label]::before {
+        display: block;
+        margin-bottom: 0.125rem;
+    }
+
+    .table-stack td.stack-actions {
+        padding-top: 0.625rem !important;
+    }
+
+    .table-stack td.stack-actions > * {
+        justify-content: flex-start;
+    }
+
+    .table-stack td.hidden {
+        display: none;
+    }
+
+    .table-stack td[colspan] {
+        text-align: center !important;
+    }
+}
+
+/*
+ * Chart colours (validated with the dataviz palette script, light and dark, against the card surface):
+ * gross profit = blue, losses = red — the reference diverging pair.
+ */
+.chart-pos { background-color: #2a78d6; }
+.chart-neg { background-color: #e34948; }
+.dark .chart-pos { background-color: #3987e5; }
+.dark .chart-neg { background-color: #e66767; }
+/* Third chart series (operating expenses): aqua, validated with blue/red above (2px gaps + legend + table as secondary cues). */
+.chart-exp { background-color: #1baf7a; }
+.dark .chart-exp { background-color: #199e70; }

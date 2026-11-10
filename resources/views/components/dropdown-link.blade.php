@@ -1,0 +1,1 @@
+<a role="menuitem" {{ $attributes->merge(['class' => 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-start text-sm text-gray-700 transition hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white dark:focus:bg-gray-800']) }}>{{ $slot }}</a>

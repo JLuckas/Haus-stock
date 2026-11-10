@@ -42,6 +42,25 @@ php -S 127.0.0.1:8123 -t public .claude/dev-router.php
   - **Retry** reprocesses an order from its stored payload, so it also works for orders outside the poller's lookback window.
 - **Deductions:** the manual deduction log, and a form with one-tap reasons such as "Employee meal". A deduction can target an inventory item or a whole product. For a product, the form previews exactly what will leave stock, and the log keeps that breakdown. Each entry records who made it.
 
+## Deploy (Render + Neon)
+
+The app ships as a Docker image (`Dockerfile`): PHP 8.4 with Apache and the Postgres driver, with the CSS/JS built inside the image. The database is Neon Postgres.
+
+1. Push the repository to GitHub. `.env` and `.env.production` are git-ignored and never leave your machine.
+2. In Render choose **New → Blueprint** and pick the repository. `render.yaml` defines the web service (Docker, health check on `/up`).
+   Alternatively choose **New → Web Service → Docker** and paste `.env.production` under **Environment → Add from .env**.
+3. Fill in the secrets Render asks for, copying them from `.env.production`: `APP_KEY`, `DATABASE_URL` (Neon pooled), `DATABASE_URL_UNPOOLED` (Neon direct) and `APP_URL`.
+   For the first login also set `ADMIN_NAME`, `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+Every deploy runs `docker/entrypoint.sh` before Apache starts:
+- `php artisan migrate --force` over the direct Neon connection. Set `RUN_MIGRATIONS=false` to skip it.
+- `user:create … --skip-existing` when `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set. The account is created once and never changed afterwards, so remove `ADMIN_PASSWORD` from Render after you sign in.
+- `php artisan optimize`, which caches config, routes and views.
+
+Test the image locally with `docker build -t haus-stock .` and `docker run -p 10000:10000 --env-file .env.production haus-stock`, then open http://localhost:10000.
+
+The Neon database is in São Paulo (`sa-east-1`) and Render's closest region is Virginia, so every query crosses that distance.
+
 ## Cost, profit and margin
 
 - **Ingredient cost:** each inventory item has a cost, entered per kg, per L or per unit (how suppliers quote it). It is stored per g / ml / un in `inventory_items.cost_per_unit` (`decimal(14,6)`). An empty cost means "not set", never "free".
@@ -75,7 +94,7 @@ php -S 127.0.0.1:8123 -t public .claude/dev-router.php
 | `php artisan saipos:poll` | Long-running poller. Each cycle fetches orders and deducts stock, then sleeps 30s. Flags: `--once`, `--interval=`, `--lookback=`, `--max-memory=` |
 | `php artisan stock:deduct "Pão brioche" 2 "Employee Meal"` | Manual deduction of an inventory item, recorded in `manual_deductions` |
 | `php artisan stock:deduct "Box Cheeseburger" 1 "Employee Meal" --product` | Manual deduction of a product, including the products inside it |
-| `php artisan user:create "Name" email@example.com` | Create a staff login (prompts for the password) |
+| `php artisan user:create "Name" email@example.com` | Create a staff login (prompts for the password; `--password-env=VAR` reads it from an environment variable, `--skip-existing` succeeds quietly when the e-mail already has an account) |
 
 In production, run `saipos:poll` under a supervisor such as Supervisor, systemd or a Docker restart policy. On Linux it finishes the current cycle when it gets SIGTERM. It exits by itself above `--max-memory` so the supervisor can start a fresh process.
 

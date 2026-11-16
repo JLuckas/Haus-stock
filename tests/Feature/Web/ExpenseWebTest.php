@@ -73,12 +73,17 @@ class ExpenseWebTest extends TestCase
         ])->assertSessionHasErrors('category');
 
         $this->post(route('expenses.store'), [
-            'kind' => 'general', 'spent_on' => today()->toDateString(), 'amount' => '350', 'category' => 'bills',
+            'kind' => 'general', 'spent_on' => today()->toDateString(), 'amount' => '350', 'category' => 'electricity',
+            'description' => 'Conta de luz',
+        ])->assertSessionHasErrors('category'); // a bill category: it belongs on the Bills tab
+
+        $this->post(route('expenses.store'), [
+            'kind' => 'general', 'spent_on' => today()->toDateString(), 'amount' => '350', 'category' => 'maintenance',
             'description' => 'Conta de luz', 'employee_name' => 'Ignored', 'employee_role' => 'kitchen', 'tags' => ['fixa'],
         ])->assertSessionHasNoErrors();
 
         $expense = Expense::query()->sole();
-        $this->assertSame(ExpenseCategory::Bills, $expense->category);
+        $this->assertSame(ExpenseCategory::Maintenance, $expense->category);
         $this->assertNull($expense->employee_name);
         $this->assertNull($expense->employee_role);
 
@@ -120,7 +125,7 @@ class ExpenseWebTest extends TestCase
     {
         $this->post(route('expenses.store'), $this->dayPayment(['amount' => '100']));
         $this->post(route('expenses.store'), [
-            'kind' => 'general', 'spent_on' => today()->toDateString(), 'amount' => '50', 'category' => 'rent',
+            'kind' => 'bill', 'spent_on' => today()->toDateString(), 'amount' => '50', 'category' => 'rent',
         ]);
         // Outside the period: not counted.
         $this->post(route('expenses.store'), $this->dayPayment(['amount' => '999', 'spent_on' => today()->subYears(1)->toDateString()]));
@@ -129,7 +134,7 @@ class ExpenseWebTest extends TestCase
 
         $this->assertSame(150.0, $report['expenses']);
         $this->assertSame(100.0, $report['expenses_by_kind']['personnel']);
-        $this->assertSame(50.0, $report['expenses_by_kind']['general']);
+        $this->assertSame(50.0, $report['expenses_by_kind']['bills']);
         $this->assertSame(-150.0, $report['net']);
 
         $this->get(route('reports.pnl', ['period' => 'today']))

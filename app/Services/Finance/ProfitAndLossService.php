@@ -47,7 +47,11 @@ class ProfitAndLossService
             ->whereBetween('created_at', [$from, $to])
             ->get(['id', 'reason', 'cost', 'cost_is_complete', 'created_at']);
 
-        $expenses = Expense::query()->between($from, $to)->get(['id', 'kind', 'spent_on', 'amount', 'employee_role', 'category']);
+        // Supplier purchases are stock, not expenses: what was bought reaches the result as CMV when it
+        // is sold (counting the purchase too would charge the same food twice). Shown apart as "purchases".
+        [$expenses, $purchases] = Expense::query()->between($from, $to)
+            ->get(['id', 'kind', 'spent_on', 'amount', 'employee_role', 'category'])
+            ->partition(fn (Expense $e): bool => $e->kind->isOperatingExpense());
 
         $revenue = $this->sum($sold, 'revenue');
         $cogs = $this->sum($sold, 'cost');
@@ -65,6 +69,7 @@ class ProfitAndLossService
             'losses' => round($losses, 2),
             'expenses' => round($expenseTotal = $this->sum($expenses, 'amount'), 2),
             'expenses_by_kind' => $this->expensesByKind($expenses),
+            'purchases' => round($this->sum($purchases, 'amount'), 2),
             'net' => round($grossProfit - $losses - $expenseTotal, 2),
             'orders_count' => $sold->count(),
             'deductions_count' => $deductions->count(),
@@ -214,7 +219,7 @@ class ProfitAndLossService
         return (float) $models->sum(fn ($model): float => (float) $model->{$attribute});
     }
 
-    /** @return array{personnel: float, general: float, by_label: list<array{label: string, total: float}>} */
+    /** @return array{personnel: float, bills: float, general: float, by_label: list<array{label: string, total: float}>} */
     private function expensesByKind(Collection $expenses): array
     {
         $rows = $expenses
@@ -228,6 +233,7 @@ class ProfitAndLossService
 
         return [
             'personnel' => round($this->sum($expenses->where('kind', ExpenseKind::Personnel), 'amount'), 2),
+            'bills' => round($this->sum($expenses->where('kind', ExpenseKind::Bill), 'amount'), 2),
             'general' => round($this->sum($expenses->where('kind', ExpenseKind::General), 'amount'), 2),
             'by_label' => $rows,
         ];

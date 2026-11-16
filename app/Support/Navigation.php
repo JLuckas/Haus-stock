@@ -62,6 +62,8 @@ final class Navigation
             ['label' => __('New order'), 'href' => route('orders.create'), 'icon' => 'orders'],
             ['label' => __('Deduct stock'), 'href' => route('manual-deductions.create'), 'icon' => 'deduct'],
             ['label' => __('Register a day payment'), 'href' => route('expenses.index', 'personnel').'#expense-form', 'icon' => 'expenses'],
+            ['label' => __('Register a bill'), 'href' => route('expenses.index', 'bill').'#expense-form', 'icon' => 'expenses'],
+            ['label' => __('New supplier purchase'), 'href' => route('expenses.index', 'supplier').'#expense-form', 'icon' => 'receive'],
             ['label' => __('Register an expense'), 'href' => route('expenses.index', 'general').'#expense-form', 'icon' => 'expenses'],
             ['label' => __('Add product'), 'href' => route('products.create'), 'icon' => 'products'],
             ['label' => __('New inventory item'), 'href' => route('inventory.create'), 'icon' => 'inventory'],

@@ -68,7 +68,7 @@
         <a href="{{ $expensesLink }}" class="surface p-4 sm:p-5 transition hover:border-gray-300 hover:shadow-md dark:hover:border-gray-700">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Expenses') }}</p>
             <p class="mt-1 truncate text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $money(-$r['expenses']) }}</p>
-            <p class="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">{{ __('Personnel') }} {{ $money($byKind['personnel']) }} · {{ __('General') }} {{ $money($byKind['general']) }}</p>
+            <p class="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">{{ __('Personnel') }} {{ $money($byKind['personnel']) }} · {{ __('Bills') }} {{ $money($byKind['bills']) }} · {{ __('General') }} {{ $money($byKind['general']) }}</p>
         </a>
         @php($positive = $r['net'] >= 0)
         <div @class(['rounded-lg p-4 ring-1',
@@ -246,6 +246,12 @@
                     <li class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ __('No expenses in this period.') }}</li>
                 @endforelse
             </ul>
+            @if ($r['purchases'] > 0)
+                <p class="border-t border-gray-100 px-4 py-3 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400 sm:px-6">
+                    <a href="{{ route('expenses.index', ['kind' => 'supplier'] + $period->query()) }}" class="link">{{ __('Supplier purchases') }}: {{ $money($r['purchases']) }}</a>.
+                    {{ __('They are stock, not expenses: what was bought counts here as food cost (CMV) when it is sold.') }}
+                </p>
+            @endif
         </x-card>
     </div>
 

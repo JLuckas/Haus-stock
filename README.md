@@ -94,6 +94,7 @@ The Neon database is in São Paulo (`sa-east-1`) and Render's closest region is 
 | `php artisan saipos:poll` | Long-running poller. Each cycle fetches orders and deducts stock, then sleeps 30s. Flags: `--once`, `--interval=`, `--lookback=`, `--max-memory=` |
 | `php artisan stock:deduct "Pão brioche" 2 "Employee Meal"` | Manual deduction of an inventory item, recorded in `manual_deductions` |
 | `php artisan stock:deduct "Box Cheeseburger" 1 "Employee Meal" --product` | Manual deduction of a product, including the products inside it |
+| `php artisan expenses:recurring` | Create the upcoming occurrences of staff payments that repeat with no end date. It also runs on page loads (at most every 10 minutes), so it needs no worker; schedule it with `schedule:run` if you want it on days nobody opens the app |
 | `php artisan user:create "Name" email@example.com` | Create a staff login (prompts for the password; `--password-env=VAR` reads it from an environment variable, `--skip-existing` succeeds quietly when the e-mail already has an account) |
 
 In production, run `saipos:poll` under a supervisor such as Supervisor, systemd or a Docker restart policy. On Linux it finishes the current cycle when it gets SIGTERM. It exits by itself above `--max-memory` so the supervisor can start a fresh process.

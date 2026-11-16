@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseSeriesController;
+use App\Http\Controllers\ExpenseTagController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPurchaseController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\ManualDeductionController;
 use App\Http\Controllers\ManualOrderController;
@@ -37,7 +41,25 @@ Route::middleware('auth')->group(function () {
     Route::post('orders/{order}/retry', RetryOrderController::class)->name('orders.retry');
 
     Route::get('expenses', fn () => to_route('expenses.index', 'personnel'))->name('expenses');
-    Route::get('expenses/{kind}', [ExpenseController::class, 'index'])->whereIn('kind', ['personnel', 'general'])->name('expenses.index');
+    // Supplier purchases ({purchase} is an expense of kind "supplier") and the suppliers themselves.
+    Route::bind('purchase', fn (string $id) => \App\Models\Expense::query()->where('kind', \App\Enums\ExpenseKind::Supplier)->findOrFail($id));
+    Route::post('expenses/purchases', [SupplierPurchaseController::class, 'store'])->name('expenses.purchases.store');
+    Route::get('expenses/purchases/{purchase}/edit', [SupplierPurchaseController::class, 'edit'])->whereNumber('purchase')->name('expenses.purchases.edit');
+    Route::put('expenses/purchases/{purchase}', [SupplierPurchaseController::class, 'update'])->whereNumber('purchase')->name('expenses.purchases.update');
+    Route::post('expenses/purchases/{purchase}/receive', [SupplierPurchaseController::class, 'receive'])->whereNumber('purchase')->name('expenses.purchases.receive');
+    Route::post('expenses/purchases/{purchase}/unreceive', [SupplierPurchaseController::class, 'unreceive'])->whereNumber('purchase')->name('expenses.purchases.unreceive');
+    Route::delete('expenses/purchases/{purchase}', [SupplierPurchaseController::class, 'destroy'])->whereNumber('purchase')->name('expenses.purchases.destroy');
+    Route::get('expenses/suppliers', [SupplierController::class, 'index'])->name('expenses.suppliers.index');
+    Route::post('expenses/suppliers', [SupplierController::class, 'store'])->name('expenses.suppliers.store');
+    Route::put('expenses/suppliers/{supplier}', [SupplierController::class, 'update'])->whereNumber('supplier')->name('expenses.suppliers.update');
+    Route::delete('expenses/suppliers/{supplier}', [SupplierController::class, 'destroy'])->whereNumber('supplier')->name('expenses.suppliers.destroy');
+    Route::get('expenses/recurring', [ExpenseSeriesController::class, 'index'])->name('expenses.series.index');
+    Route::delete('expenses/recurring/{series}', [ExpenseSeriesController::class, 'destroy'])->whereNumber('series')->name('expenses.series.destroy');
+    Route::get('expenses/tags', [ExpenseTagController::class, 'index'])->name('expenses.tags.index');
+    Route::post('expenses/tags', [ExpenseTagController::class, 'store'])->name('expenses.tags.store');
+    Route::put('expenses/tags/{tag}', [ExpenseTagController::class, 'update'])->whereNumber('tag')->name('expenses.tags.update');
+    Route::delete('expenses/tags/{tag}', [ExpenseTagController::class, 'destroy'])->whereNumber('tag')->name('expenses.tags.destroy');
+    Route::get('expenses/{kind}', [ExpenseController::class, 'index'])->whereIn('kind', \App\Enums\ExpenseKind::values())->name('expenses.index');
     Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::get('expenses/{expense}/edit', [ExpenseController::class, 'edit'])->whereNumber('expense')->name('expenses.edit');
     Route::put('expenses/{expense}', [ExpenseController::class, 'update'])->whereNumber('expense')->name('expenses.update');

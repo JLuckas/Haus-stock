@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Render (and most hosts) terminate HTTPS at a proxy in front of the app: trust its
         // X-Forwarded-* headers so URLs, redirects and secure cookies use https and the real client IP.
         $middleware->trustProxies(at: '*');
+
+        // Fill in open-ended recurring expenses as time passes (no background worker needed).
+        $middleware->web(append: [\App\Http\Middleware\MaterializeRecurringExpenses::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // API clients always get JSON errors (e.g. 401), never a redirect to the login page.

@@ -76,6 +76,14 @@
                             <td @class(['px-4 py-3 sm:px-6 text-gray-900 dark:text-gray-100', 'lg:pl-10 text-gray-600 dark:text-gray-400' => $line->isChoice])>
                                 @if ($line->isChoice)<span class="text-gray-400 dark:text-gray-500">+ </span>@endif{{ $line->name ?: '—' }}
                                 @if ($line->isChoice)<x-badge class="ml-1">{{ __('Add-on') }}</x-badge>@endif
+                                @if ($line->customizations)
+                                    {{-- What the customer asked to change on this line --}}
+                                    <div class="mt-1.5 flex flex-wrap gap-1">
+                                        @foreach ($line->customizations as $change)
+                                            <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">{{ \App\Services\Stock\OrderCustomizer::describe($change) }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td data-label="{{ __('Saipos SKU') }}" class="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400">{{ $line->skuId ?? '—' }}</td>
                             <td data-label="{{ __('Qty') }}" class="px-4 py-3 text-right tabular-nums">{{ \App\Support\Quantity::format($line->quantity) }}</td>

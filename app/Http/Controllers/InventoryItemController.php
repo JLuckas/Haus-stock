@@ -19,17 +19,20 @@ class InventoryItemController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'type' => ['nullable', Rule::enum(InventoryItemType::class)],
             'low' => ['nullable', 'boolean'],
+            'category' => ['nullable', 'integer'],
         ]);
 
         $items = InventoryItem::query()
+            ->with('category')
             ->search($filters['search'] ?? null)
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('category_id', $category))
             ->when($filters['type'] ?? null, fn ($q, $type) => $q->where('type', $type))
             ->when($filters['low'] ?? false, fn ($q) => $q->belowMinimum())
             ->orderBy('name')
             ->paginate(25)
             ->withQueryString();
 
-        return view('inventory.index', ['items' => $items, 'filters' => $filters]);
+        return view('inventory.index', ['items' => $items, 'filters' => $filters, 'categories' => \App\Models\Category::query()->forIngredients()->get()]);
     }
 
     public function create(): View

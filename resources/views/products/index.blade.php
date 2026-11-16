@@ -16,6 +16,15 @@
             <x-input-label for="search" :value="__('Search')" class="sr-only" />
             <x-text-input id="search" name="search" type="search" :placeholder="__('Search by name or Saipos SKU…')" class="w-full" :value="$filters['search'] ?? ''" />
         </div>
+        <div>
+            <x-input-label for="category" :value="__('Category')" class="sr-only" />
+            <x-select id="category" name="category" class="w-full md:w-auto">
+                <option value="">{{ __('All categories') }}</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) ($filters['category'] ?? '') === (string) $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </x-select>
+        </div>
         <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input type="checkbox" name="unmapped" value="1" class="rounded border-gray-300 dark:border-gray-700 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-950 dark:checked:bg-indigo-500 dark:focus:ring-offset-gray-900" @checked($filters['unmapped'] ?? false)>
             {{ __('Not mapped to stock only') }}
@@ -44,7 +53,7 @@
                     @forelse ($products as $product)
                         @php($mode = $product->stockMode())
                         <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 align-top">
-                            <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 sm:px-6">{{ $product->name }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 sm:px-6">{{ $product->name }} <x-category :category="$product->category" class="ml-1 align-middle" /></td>
                             <td data-label="{{ __('Saipos SKU') }}" class="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ $product->saipos_sku_id }}</td>
                             <td data-label="{{ __('Price') }}" class="px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ \App\Support\Money::format($product->price) }}</td>
                             <td data-label="{{ __('Takes from stock') }}" class="stack-block px-4 py-3 min-w-[16rem]">

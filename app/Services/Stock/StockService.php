@@ -100,7 +100,7 @@ class StockService
                 throw UnmappedProductException::forItem($item, $order->saiposOrderId);
             }
 
-            $lines[] = [$product, $item->quantity];
+            $lines[] = [$product, $item->quantity, $item->customizations];
         }
 
         // Expands nested products (combos) and returns totals sorted by item id (fixed lock order).

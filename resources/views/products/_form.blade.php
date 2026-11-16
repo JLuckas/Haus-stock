@@ -19,6 +19,17 @@
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
         <div>
+            <x-input-label for="category_id" :value="__('Category')" />
+            <x-select id="category_id" name="category_id" class="mt-1 block w-full">
+                <option value="">{{ __('No category') }}</option>
+                @foreach (\App\Models\Category::query()->forProducts()->get() as $category)
+                    <option value="{{ $category->id }}" @selected((string) old('category_id', $product->category_id) === (string) $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </x-select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('Box, burger, beverage… In a box, a product can be swapped for another of the same category.') }}</p>
+            <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
+        </div>
+        <div>
             <x-input-label for="price" :value="__('Price (R$)')" />
             <div class="mt-1 flex"><x-decimal-input id="price" name="price" decimals="2" fixed="2" class="block w-full" x-model="price" required /></div>
             <x-input-error :messages="$errors->get('price')" class="mt-2" />
@@ -66,8 +77,12 @@
                         <div class="flex flex-wrap items-start gap-2 sm:flex-nowrap">
                             <x-select class="block w-full sm:w-auto sm:min-w-0 sm:flex-1" x-model="line.inventory_item_id" ::name="`ingredients[${index}][inventory_item_id]`" ::disabled="mode !== 'recipe'" :aria-label="__('Ingredient')">
                                 <option value="">{{ __('Choose an ingredient…') }}</option>
-                                @foreach ($inventory as $option)
-                                    <option value="{{ $option->id }}">{{ $option->name }}</option>
+                                @foreach ($inventory->groupBy(fn ($i) => $i->category?->name ?? __('No category')) as $group => $groupItems)
+                                    <optgroup label="{{ $group }}">
+                                        @foreach ($groupItems as $option)
+                                            <option value="{{ $option->id }}">{{ $option->name }}</option>
+                                        @endforeach
+                                    </optgroup>
                                 @endforeach
                             </x-select>
                             <div class="flex flex-1 items-stretch sm:w-40 sm:flex-none">

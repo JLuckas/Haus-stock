@@ -27,13 +27,16 @@ class ManualOrderService
     public function __construct(
         private readonly SaiposIntegrationService $saipos,
         private readonly StockService $stockService,
+        private readonly OrderCustomizer $customizer,
     ) {}
 
     /**
      * Registers the order and deducts its stock. Never throws for stock problems: if the deduction
      * fails, the order is kept as "failed" with the reason in last_error, like an imported order.
      *
-     * @param  list<array{product_id: int|string, quantity: float|int|string}>  $lines
+     * @param  list<array{product_id: int|string, quantity: float|int|string, unit_price?: numeric-string|float|null, customizations?: list<array<string, mixed>>}>  $lines
+     *     unit_price: price charged per unit when it differs from the product's (extras charged);
+     *     customizations: swaps / removals / additions for that line (see OrderCustomizer).
      * @param  string|null  $reference  Saipos order number, if the sale exists there; otherwise one is generated.
      */
     public function create(array $lines, ?string $reference, ?string $notes, ?int $userId): Order
@@ -49,12 +52,13 @@ class ManualOrderService
             'items' => array_map(function (array $line) use ($products): array {
                 $product = $products[(int) $line['product_id']];
 
-                return [
+                return array_filter([
                     'integration_code' => $product->saipos_sku_id,
                     'desc_item' => $product->name,
                     'quantity' => round((float) $line['quantity'], 3),
-                    'unit_price' => (float) $product->price,
-                ];
+                    'unit_price' => isset($line['unit_price']) && $line['unit_price'] !== null ? round((float) $line['unit_price'], 2) : (float) $product->price,
+                    'customizations' => $this->customizer->normalize($line['customizations'] ?? []),
+                ], fn ($value): bool => $value !== []);
             }, $lines),
         ];
 

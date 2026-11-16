@@ -27,18 +27,20 @@ class ProductController extends Controller
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'unmapped' => ['nullable', 'boolean'],
+            'category' => ['nullable', 'integer'],
         ]);
 
         $products = Product::query()
-            ->with(['standaloneItem', 'ingredients', 'components'])
+            ->with(['standaloneItem', 'ingredients', 'components', 'category'])
             ->withCount(['ingredients', 'components'])
             ->search($filters['search'] ?? null)
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('category_id', $category))
             ->when($filters['unmapped'] ?? false, fn ($q) => $q->unmapped())
             ->orderBy('name')
             ->paginate(25)
             ->withQueryString();
 
-        return view('products.index', ['products' => $products, 'filters' => $filters]);
+        return view('products.index', ['products' => $products, 'filters' => $filters, 'categories' => \App\Models\Category::query()->forProducts()->get()]);
     }
 
     /** Accepts ?sku=&name= so a failed order can link straight to registering its missing product. */
@@ -97,7 +99,7 @@ class ProductController extends Controller
     /** Everything the product form and its live cost panel need, including the rows to pre-fill. */
     private function formData(Product $product): array
     {
-        $inventory = InventoryItem::query()->orderBy('name')->get();
+        $inventory = InventoryItem::query()->with('category')->orderBy('name')->get();
         $itemsById = $inventory->keyBy('id');
 
         // A product can't contain itself or anything that already contains it.

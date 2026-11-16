@@ -119,6 +119,8 @@ class SaiposIntegrationService
                 name: (string) ($item['desc_item'] ?? $item['desc_sale_item'] ?? ''),
                 quantity: $quantity,
                 unitPrice: $this->numberOrNull($item['unit_price'] ?? null),
+                // Our own field (manual orders, webhooks): changes asked for this line.
+                customizations: is_array($item['customizations'] ?? null) ? array_values($item['customizations']) : [],
             );
 
             foreach ($item['choice_items'] ?? [] as $choice) {

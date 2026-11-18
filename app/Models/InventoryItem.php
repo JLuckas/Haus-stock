@@ -8,6 +8,7 @@ use App\Support\Money;
 use App\Support\Quantity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -35,6 +36,7 @@ class InventoryItem extends Model
         'current_stock',
         'minimum_stock',
         'cost_per_unit',
+        'category_id',
     ];
 
     protected function casts(): array
@@ -165,5 +167,10 @@ class InventoryItem extends Model
     public function isScaledQuantity(float|int|string|null $value): bool
     {
         return Quantity::isScaled($value, $this->unit_of_measure);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

@@ -23,6 +23,15 @@
                 @endforeach
             </x-select>
         </div>
+        <div>
+            <x-input-label for="category" :value="__('Category')" class="sr-only" />
+            <x-select id="category" name="category" class="w-full md:w-auto">
+                <option value="">{{ __('All categories') }}</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) ($filters['category'] ?? '') === (string) $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </x-select>
+        </div>
         <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input type="checkbox" name="low" value="1" class="rounded border-gray-300 dark:border-gray-700 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-950 dark:checked:bg-indigo-500 dark:focus:ring-offset-gray-900" @checked($filters['low'] ?? false)>
             {{ __('Below minimum only') }}
@@ -54,7 +63,7 @@
                         <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40">
                             <td class="px-4 py-3 sm:px-6">
                                 <div class="font-medium text-gray-900 dark:text-gray-100">{{ $item->name }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $item->type->label() }}</div>
+                                <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">{{ $item->type->label() }} <x-category :category="$item->category" /></div>
                             </td>
                             <td data-label="{{ __('In stock') }}" class="px-4 py-3 text-right tabular-nums whitespace-nowrap">
                                 <div>

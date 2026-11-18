@@ -38,6 +38,7 @@ class UpdateInventoryItemRequest extends FormRequest
             'unit_of_measure' => ['required', Rule::enum(UnitOfMeasure::class)],
             'minimum_stock' => ['required', 'numeric', 'min:0', 'max:999999999'],
             'cost' => $this->costRules(),
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('scope', 'ingredient')],
         ];
     }
 

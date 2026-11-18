@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseSeriesController;
@@ -30,6 +31,10 @@ Route::middleware('auth')->group(function () {
     Route::get('inventory/{item}/receive', [ReceiveStockController::class, 'create'])->name('inventory.receive');
     Route::post('inventory/{item}/receive', [ReceiveStockController::class, 'store'])->name('inventory.receive.store');
 
+    Route::get('products/categories', [CategoryController::class, 'index'])->name('products.categories');
+    Route::post('products/categories', [CategoryController::class, 'store'])->name('products.categories.store');
+    Route::put('products/categories/{category}', [CategoryController::class, 'update'])->whereNumber('category')->name('products.categories.update');
+    Route::delete('products/categories/{category}', [CategoryController::class, 'destroy'])->whereNumber('category')->name('products.categories.destroy');
     Route::get('products/costs', [ProductCostController::class, 'index'])->name('products.costs');
     Route::put('products/costs/target-margin', [ProductCostController::class, 'updateTargetMargin'])->name('products.target-margin');
     Route::resource('products', ProductController::class)->except('show');

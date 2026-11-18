@@ -32,6 +32,7 @@ class Product extends Model
         'price',
         'target_margin_percent',
         'inventory_item_id',
+        'category_id',
     ];
 
     protected function casts(): array
@@ -117,5 +118,10 @@ class Product extends Model
             : $query->where(fn (Builder $q) => $q
                 ->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"])
                 ->orWhereRaw('LOWER(saipos_sku_id) LIKE ?', ["%{$term}%"]));
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

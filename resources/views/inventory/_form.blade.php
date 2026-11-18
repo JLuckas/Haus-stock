@@ -35,6 +35,18 @@
     </div>
 
     <div>
+        <x-input-label for="category_id" :value="__('Category')" />
+        <x-select id="category_id" name="category_id" class="mt-1 block w-full">
+            <option value="">{{ __('No category') }}</option>
+            @foreach (\App\Models\Category::query()->forIngredients()->get() as $category)
+                <option value="{{ $category->id }}" @selected((string) old('category_id', $item->category_id) === (string) $category->id)>{{ $category->name }}</option>
+            @endforeach
+        </x-select>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('Bread, meat, cheese, sauce… On an order, an ingredient can be swapped for another of the same category.') }} <a href="{{ route('products.categories') }}" class="link">{{ __('Manage categories') }}</a></p>
+        <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
+    </div>
+
+    <div>
         <x-input-label for="unit_of_measure" :value="__('Unit')" />
         <x-select id="unit_of_measure" name="unit_of_measure" class="mt-1 block w-full" x-model="unit" required>
             @foreach (\App\Enums\UnitOfMeasure::cases() as $unit)

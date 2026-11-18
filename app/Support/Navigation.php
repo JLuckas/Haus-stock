@@ -35,7 +35,7 @@ final class Navigation
                 'items' => [
                     self::item(__('Orders'), 'orders.index', 'orders', ['orders.*'], self::failedOrders(), 'red'),
                     self::item(__('Inventory'), 'inventory.index', 'inventory', ['inventory.*'], self::lowStock(), 'amber'),
-                    self::item(__('Products'), 'products.index', 'products', ['products.index', 'products.create', 'products.edit']),
+                    self::item(__('Products'), 'products.index', 'products', ['products.index', 'products.create', 'products.edit', 'products.categories']),
                     self::item(__('Deductions'), 'manual-deductions.index', 'deduct', ['manual-deductions.*']),
                 ],
             ],

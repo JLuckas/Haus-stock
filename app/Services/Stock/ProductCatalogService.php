@@ -36,6 +36,7 @@ class ProductCatalogService
             $product->fill([
                 'saipos_sku_id' => trim($data['saipos_sku_id']),
                 'name' => trim($data['name']),
+                'category_id' => $data['category_id'] ?? null,
                 'price' => $data['price'],
                 'target_margin_percent' => $data['target_margin_percent'] ?? null,
                 'inventory_item_id' => $isRecipe ? null : (int) $data['inventory_item_id'],

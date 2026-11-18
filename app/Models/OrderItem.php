@@ -30,6 +30,7 @@ class OrderItem extends Model
         'saipos_sku_id',
         'name',
         'is_add_on',
+        'customizations',
         'quantity',
         'unit_price',
         'unit_cost',
@@ -40,6 +41,7 @@ class OrderItem extends Model
     {
         return [
             'is_add_on' => 'boolean',
+            'customizations' => 'array',
             'quantity' => 'decimal:3',
             'unit_price' => 'decimal:2',
             'unit_cost' => 'decimal:4',

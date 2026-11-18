@@ -55,9 +55,12 @@ class ProfitabilityService
      *
      * @throws InvalidRecipeException when the product (or one nested in it) has no valid recipe
      */
-    public function calculateProductCost(Product $product, ?Collection $items = null): ProductCost
+    public function calculateProductCost(Product $product, ?Collection $items = null, array $customizations = []): ProductCost
     {
-        $plan = $this->billOfMaterials->perUnit($product);
+        // With an order line's changes (swaps, extras…) the cost follows the changed recipe.
+        $plan = $customizations
+            ? $this->billOfMaterials->perUnitCustomized($product, $customizations)
+            : $this->billOfMaterials->perUnit($product);
         $items ??= InventoryItem::query()->whereKey(array_keys($plan))->get()->keyBy('id');
 
         $total = 0.0;

@@ -9,6 +9,7 @@ final readonly class NormalizedOrderItem
      * @param  float  $quantity  Total units sold. For choice items this is already multiplied by the parent quantity.
      * @param  bool  $isChoice  True for add-ons/complements (Saipos "choice_items").
      * @param  float|null  $unitPrice  Price charged per unit (unit_price / aditional_price); null = use the product's price.
+     * @param  list<array<string, mixed>>  $customizations  Swaps / removals / additions for this line (see OrderCustomizer).
      */
     public function __construct(
         public ?string $skuId,
@@ -16,5 +17,6 @@ final readonly class NormalizedOrderItem
         public float $quantity,
         public bool $isChoice = false,
         public ?float $unitPrice = null,
+        public array $customizations = [],
     ) {}
 }

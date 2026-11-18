@@ -107,7 +107,9 @@ class ManualOrderTest extends TestCase
                 ['product_id' => $this->productId('HAUS-BOX-1'), 'quantity' => '1'],
                 ['product_id' => $this->productId('HAUS-BOX-1'), 'quantity' => '0'],
             ],
-        ])->assertSessionHasErrors(['items.1.product_id', 'items.1.quantity']);
+        ])->assertSessionHasErrors(['items.1.quantity'])
+            // The same product may appear twice (e.g. one with onion, one without).
+            ->assertSessionDoesntHaveErrors(['items.1.product_id']);
 
         $this->post(route('orders.store'), [
             'items' => [['product_id' => $this->productId('EMPTY'), 'quantity' => '1']],

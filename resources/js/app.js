@@ -9,6 +9,7 @@ import { expenseForm } from './expense-form';
 import { productForm } from './product-form';
 import { commandPalette } from './command-palette';
 import { purchaseForm } from './purchase-form';
+import { orderForm } from './order-form';
 
 // Available in Alpine expressions, e.g. x-text="formatQuantity(qty, 'g')".
 window.formatQuantity = formatQuantity;
@@ -21,6 +22,7 @@ window.expenseForm = expenseForm;
 window.productForm = productForm;
 window.commandPalette = commandPalette;
 window.purchaseForm = purchaseForm;
+window.orderForm = orderForm;
 
 window.Alpine = Alpine;
 

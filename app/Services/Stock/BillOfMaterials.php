@@ -29,7 +29,9 @@ class BillOfMaterials
     /**
      * Total inventory consumed by several product lines, aggregated per item.
      *
-     * @param  iterable<array{0: Product, 1: float|int}>  $lines  [product, quantity] pairs
+     * @param  iterable<array{0: Product, 1: float|int, 2?: list<array<string, mixed>>}>  $lines
+     *     [product, quantity, customizations] — customizations are an order line's changes
+     *     (see OrderCustomizer: swap/remove/add an ingredient or a product inside a box).
      * @return array<int, float> inventory_item_id => quantity, sorted by id, rounded to 3 decimals
      *
      * @throws InvalidRecipeException
@@ -39,8 +41,12 @@ class BillOfMaterials
         $this->memo = [];
         $totals = [];
 
-        foreach ($lines as [$product, $quantity]) {
-            foreach ($this->resolve($product, []) as $itemId => $perUnit) {
+        foreach ($lines as $line) {
+            [$product, $quantity] = $line;
+            $customizations = $line[2] ?? [];
+            $perUnitPlan = $customizations ? $this->customized($product, $customizations) : $this->resolve($product, []);
+
+            foreach ($perUnitPlan as $itemId => $perUnit) {
                 $totals[$itemId] = ($totals[$itemId] ?? 0.0) + $perUnit * $quantity;
             }
         }
@@ -62,6 +68,92 @@ class BillOfMaterials
     public function perUnit(Product $product): array
     {
         return $this->explode([[$product, 1]]);
+    }
+
+    /**
+     * Inventory consumed by ONE unit of the product with an order line's changes applied, e.g.
+     * Box + [swap Coke → Guaraná, add 1 × Cheeseburger, swap Cheddar → Mussarela].
+     *
+     *  1. Products inside it: swap / remove / add (the box's own structure).
+     *  2. The result is flattened, then ingredients are swapped / removed / added on the whole of it,
+     *     so swapping the cheese also reaches the burgers inside a box.
+     *
+     * Changes that don't apply (e.g. swapping something the product doesn't have) are skipped;
+     * orders typed in the app are validated beforehand by OrderCustomizer.
+     *
+     * @param  list<array<string, mixed>>  $customizations
+     * @return array<int, float>
+     */
+    private function customized(Product $product, array $customizations): array
+    {
+        $product->loadMissing(['ingredients', 'components', 'standaloneItem']);
+        $totals = [];
+        $components = [];
+
+        if ($product->inventory_item_id !== null) {
+            $totals = $this->resolve($product, []);
+        } else {
+            foreach ($product->ingredients as $ingredient) {
+                $totals[$ingredient->id] = ($totals[$ingredient->id] ?? 0.0) + (float) $ingredient->pivot->quantity_needed;
+            }
+            foreach ($product->components as $component) {
+                $components[$component->id] = ($components[$component->id] ?? 0.0) + (float) $component->pivot->quantity;
+            }
+        }
+
+        foreach ($customizations as $change) {
+            match ($change['type'] ?? null) {
+                'swap_product' => $this->move($components, (int) $change['from'], (int) $change['to']),
+                'remove_product' => $components = array_diff_key($components, [(int) $change['product'] => true]),
+                'add_product' => $components[(int) $change['product']] = ($components[(int) $change['product']] ?? 0.0) + (float) ($change['quantity'] ?? 1),
+                default => null,
+            };
+        }
+
+        $models = Product::query()->with(['ingredients', 'components', 'standaloneItem'])->whereKey(array_keys($components))->get()->keyBy('id');
+
+        foreach ($components as $componentId => $perParent) {
+            $component = $models->get($componentId) ?? throw InvalidRecipeException::noStockMapping($product, [$product->name]);
+
+            foreach ($this->resolve($component, [$product]) as $itemId => $quantity) {
+                $totals[$itemId] = ($totals[$itemId] ?? 0.0) + $quantity * $perParent;
+            }
+        }
+
+        foreach ($customizations as $change) {
+            match ($change['type'] ?? null) {
+                'swap_ingredient' => $this->move($totals, (int) $change['from'], (int) $change['to']),
+                'remove_ingredient' => $totals = array_diff_key($totals, [(int) $change['item'] => true]),
+                'add_ingredient' => $totals[(int) $change['item']] = ($totals[(int) $change['item']] ?? 0.0) + (float) ($change['quantity'] ?? 0),
+                default => null,
+            };
+        }
+
+        return $totals;
+    }
+
+    /** Moves the amount of $from to $to (no-op when $from isn't there). */
+    private function move(array &$amounts, int $from, int $to): void
+    {
+        if ($from === $to || ! isset($amounts[$from])) {
+            return;
+        }
+
+        $amounts[$to] = ($amounts[$to] ?? 0.0) + $amounts[$from];
+        unset($amounts[$from]);
+    }
+
+    /**
+     * Per-unit consumption with customizations (for cost snapshots and previews).
+     *
+     * @param  list<array<string, mixed>>  $customizations
+     * @return array<int, float>
+     *
+     * @throws InvalidRecipeException
+     */
+    public function perUnitCustomized(Product $product, array $customizations): array
+    {
+        return $this->explode([[$product, 1, $customizations]]);
     }
 
     /**

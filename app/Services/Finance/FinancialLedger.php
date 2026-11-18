@@ -46,7 +46,11 @@ class FinancialLedger
             }
 
             $unitPrice = $line->unitPrice ?? (float) ($product?->price ?? 0);
-            $productCost = $product ? ($costs[$product->id] ??= $this->profitability->calculateProductCost($product, $inventory)) : null;
+            $productCost = match (true) {
+                $product === null => null,
+                $line->customizations !== [] => $this->profitability->calculateProductCost($product, $inventory, $line->customizations),
+                default => $costs[$product->id] ??= $this->profitability->calculateProductCost($product, $inventory),
+            };
             $lineComplete = $productCost?->isComplete() ?? false;
 
             $record->items()->create([
@@ -54,6 +58,7 @@ class FinancialLedger
                 'saipos_sku_id' => $line->skuId,
                 'name' => $product?->name ?? ($line->name !== '' ? $line->name : (string) $line->skuId),
                 'is_add_on' => $line->isChoice,
+                'customizations' => $line->customizations ?: null,
                 'quantity' => $line->quantity,
                 'unit_price' => round($unitPrice, 2),
                 'unit_cost' => $productCost ? round($productCost->total, 4) : null,

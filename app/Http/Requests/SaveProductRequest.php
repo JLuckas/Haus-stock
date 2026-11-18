@@ -32,6 +32,7 @@ class SaveProductRequest extends FormRequest
                 Rule::unique('products', 'saipos_sku_id')->ignore($this->route('product')),
             ],
             'name' => ['required', 'string', 'max:255'],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('scope', 'product')],
             'price' => ['required', 'numeric', 'min:0', 'max:99999999'],
             // Empty = use the store's target margin.
             'target_margin_percent' => ['nullable', 'numeric', 'min:0', 'max:99'],
